@@ -8,7 +8,7 @@ use IO::File;
 use vars qw(@EXPORT_OK $VERSION $BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN $AUTOLOAD $DEBUG);
 
 # yay! finally 
-$VERSION='1.1';
+$VERSION='1.2';
 
 # for seekable stuff
 $DEBUG = 0;
@@ -30,37 +30,37 @@ File::Binary - Binary file reading module
 
     use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
 
-   	my $fb = File::Binary->new("myfile");
-	
-	$fb->get_ui8();
-	$fb->get_ui16();
-	$fb->get_ui32();
-	$fb->get_si8();
-	$fb->get_si16();
-	$fb->get_si32();
+    my $fb = File::Binary->new("myfile");
+    
+    $fb->get_ui8();
+    $fb->get_ui16();
+    $fb->get_ui32();
+    $fb->get_si8();
+    $fb->get_si16();
+    $fb->get_si32();
 
-	$fb->close();
+    $fb->close();
 
-	$fb->open(">newfile");
+    $fb->open(">newfile");
 
-	$fb->put_ui8(255);
-	$fb->put_ui16(65535);
-	$fb->put_ui32(4294967295);
-	$fb->put_si8(-127);
-	$fb->put_si16(-32767);
-	$fb->put_si32(-2147483645);
-	
-	$fb->close();
+    $fb->put_ui8(255);
+    $fb->put_ui16(65535);
+    $fb->put_ui32(4294967295);
+    $fb->put_si8(-127);
+    $fb->put_si16(-32767);
+    $fb->put_si32(-2147483645);
+    
+    $fb->close();
 
 
-	$fb->open(IO::Scalar->new($somedata));
-	$fb->set_endian($BIG_ENDIAN); # force endianness
+    $fb->open(IO::Scalar->new($somedata));
+    $fb->set_endian($BIG_ENDIAN); # force endianness
 
-	# do what they say on the tin
-	$fb->seek($pos);
-	$fb->tell();
+    # do what they say on the tin
+    $fb->seek($pos);
+    $fb->tell();
 
-	# etc etc
+    # etc etc
 
 
 =head1 DESCRIPTION
@@ -77,9 +77,9 @@ It has methods for reading and writing signed and unsigned 8, 16 and
 putting in methods for >32bit integers nicely but until then, patches 
 welcome.
 
-It hasn't reatined backwards compatability with the old version of this 
+It hasn't retained backwards compatability with the old version of this 
 module for cleanliness sakes and also because the old interface was 
-pretty brain  dead.
+pretty braindead.
 
 =head1 METHODS
 
@@ -90,17 +90,17 @@ Pass in either a file name or something which isa an IO::Handle.
 =cut 
 
 sub new {
-	my ($class, $file) = @_;
+    my ($class, $file) = @_;
 
-	my $self = {};
-	
-	bless $self,  $class;
+    my $self = {};
+    
+    bless $self,  $class;
 
-	$self->open($file);
-	$self->set_endian($NATIVE_ENDIAN);
+    $self->open($file);
+    $self->set_endian($NATIVE_ENDIAN);
 
 
-	return $self;
+    return $self;
 }
 
 =head2 open
@@ -110,36 +110,36 @@ Pass in either a file name or something which isa an IO::Handle.
 =cut 
 
 sub open {
-	my ($self, $file) = @_;
+    my ($self, $file) = @_;
     
-	my $fh;
-	my $writeable = -1;
+    my $fh;
+    my $writeable = -1;
 
-	if (ref($fh) =~ /^IO::/ && $file->isa('IO::Handle')) {
-		$fh = $file;
-		$writeable = 2; # read and write mode 
-	} else {
-		$fh = IO::File->new($file) || die "No such file $file\n";
-		if ($file =~ /^>/) {
-			$writeable = 1;
-		} elsif ($file =~ /^\+>/) {
-			$writeable=2;
-		}
+    if (ref($fh) =~ /^IO::/ && $file->isa('IO::Handle')) {
+        $fh = $file;
+        $writeable = 2; # read and write mode 
+    } else {
+        $fh = IO::File->new($file) || die "No such file $file\n";
+        if ($file =~ /^>/) {
+            $writeable = 1;
+        } elsif ($file =~ /^\+>/) {
+            $writeable=2;
+        }
 
-	}
+    }
 
 
 
     $self->{_bitbuf}      = '';
-	$self->{_bitpos}      = 0;
-	$self->{_fh}          = $fh;
-	$self->{_fhpos}       = 0;
-	$self->{_flush}       = 1;
-	$self->{_writeable}   = $writeable;
-	$self->{_is_seekable} = UNIVERSAL::isa($fh,'IO::Seekable')?1:0;
-	      	
+    $self->{_bitpos}      = 0;
+    $self->{_fh}          = $fh;
+    $self->{_fhpos}       = 0;
+    $self->{_flush}       = 1;
+    $self->{_writeable}   = $writeable;
+    $self->{_is_seekable} = UNIVERSAL::isa($fh,'IO::Seekable')?1:0;
+              
 
-	return $self;
+    return $self;
 }
 
 =head2 seek
@@ -156,19 +156,19 @@ Returns the current file position.
 =cut
 
 sub seek {
-	my $self = shift;
-	my $seek = shift;
+    my $self = shift;
+    my $seek = shift;
     unless ($self->{_is_seekable}) {
         carp "FH is not seekable" if $DEBUG; 
         return 0;
     }
 
-	$self->{_fh}->seek($seek) if defined $seek;
-	$self->_init_bits();
+    $self->{_fh}->seek($seek) if defined $seek;
+    $self->_init_bits();
     return $self->{_fh}->tell();
 
 
-	
+    
 }
 
 =head2 tell
@@ -181,13 +181,13 @@ warning.
 =cut
 
 sub tell {
-	my $self = shift;
-	unless ($self->{_is_seekable}) {
-		carp "FH is not seekable" if $DEBUG;
-		return 0;
-	}
+    my $self = shift;
+    unless ($self->{_is_seekable}) {
+        carp "FH is not seekable" if $DEBUG;
+        return 0;
+    }
 
-	return $self->{_fh}->tell();
+    return $self->{_fh}->tell();
 }
 
 
@@ -199,9 +199,9 @@ To flush or not to flush. That is the question
 =cut
 
 sub set_flush {
-	 my ($self, $flush) = @_;
+     my ($self, $flush) = @_;
 
-	$self->{_flush} = $flush;
+    $self->{_flush} = $flush;
 }
 
 
@@ -209,9 +209,9 @@ sub set_flush {
 
 Set the how the module reads files. The options are
 
-	$BIG_ENDIAN 
-	$LITTLE_ENDIAN 
-	$NATIVE_ENDIAN
+    $BIG_ENDIAN 
+    $LITTLE_ENDIAN 
+    $NATIVE_ENDIAN
 
 
 I<NATIVE> will deduce  the endianess of the current system.
@@ -219,33 +219,33 @@ I<NATIVE> will deduce  the endianess of the current system.
 =cut
 
 sub set_endian {
-	my ($self, $endian) = @_;
+    my ($self, $endian) = @_;
 
-	$endian ||= $NATIVE_ENDIAN;
+    $endian ||= $NATIVE_ENDIAN;
 
-	$endian = guess_endian() if ($endian == $NATIVE_ENDIAN);
+    $endian = guess_endian() if ($endian == $NATIVE_ENDIAN);
 
-	if ($endian == $BIG_ENDIAN) {
-		$self->{_ui16} = 'v';
-		$self->{_ui32} = 'V';
-	} else {
-		$self->{_ui16} = 'n';
-		$self->{_ui32} = 'N';
-	}
+    if ($endian == $BIG_ENDIAN) {
+        $self->{_ui16} = 'v';
+        $self->{_ui32} = 'V';
+    } else {
+        $self->{_ui16} = 'n';
+        $self->{_ui32} = 'N';
+    }
 
-	$self->{_endian} = $endian;		
+    $self->{_endian} = $endian;        
 
 }
 
 
 sub _init_bits {
-	my $self = shift;
+    my $self = shift;
 
-	if ($self->{_writeable}) {
-		$self->_init_bits_write();
-	} else {
-		$self->_init_bits_read();
-	}
+    if ($self->{_writeable}) {
+        $self->_init_bits_write();
+    } else {
+        $self->_init_bits_read();
+    }
 }
 
 
@@ -264,10 +264,10 @@ sub _init_bits_write {
 }
 
 sub _init_bits_read {
-	my $self = shift;  
+    my $self = shift;  
   
-	$self->{_pos}  = 0;
-  	$self->{_bits} = 0;
+    $self->{_pos}  = 0;
+      $self->{_bits} = 0;
 
 }
 
@@ -279,20 +279,20 @@ Get an arbitary number of bytes from the file.
 =cut
 
 sub get_bytes {
-	my ($self, $bytes) = @_;
-	
-	$bytes = int $bytes;
+    my ($self, $bytes) = @_;
+    
+    $bytes = int $bytes;
 
-	carp("Must be positive number")                  if ($bytes <1);
-	carp("This file has been opened in write mode.") if $self->{_writeable} == 1;
+    carp("Must be positive number")                  if ($bytes <1);
+    carp("This file has been opened in write mode.") if $self->{_writeable} == 1;
 
-	$self->_init_bits() if $self->{_flush};
-  	
-	$self->{_fh}->read(my $data, $bytes);
+    $self->_init_bits() if $self->{_flush};
+      
+    $self->{_fh}->read(my $data, $bytes);
 
-	$self->{_fhpos} += $bytes;
+    $self->{_fhpos} += $bytes;
 
-  	return $data;
+      return $data;
 }
   
 
@@ -303,14 +303,14 @@ Write some bytes
 =cut
 
 sub put_bytes {
-	my ($self, $bytes) = @_;
+    my ($self, $bytes) = @_;
 
-	
-	carp("This file has been opened in read mode.") unless $self->{_writeable};
+    
+    carp("This file has been opened in read mode.") unless $self->{_writeable};
 
-	## TODO?	
-	#$self->_init_bits;
-	$self->{_fh}->write($bytes);
+    ## TODO?    
+    #$self->_init_bits;
+    $self->{_fh}->write($bytes);
 }
 
 
@@ -318,9 +318,9 @@ sub put_bytes {
 
 # we could use POSIX::ceil here but I ph34r the POSIX lib
 sub _round {
-	my $num = shift || 0;
+    my $num = shift || 0;
 
-    	return int ($num + 0.5 * ($num <=> 0 ) );
+    return int ($num + 0.5 * ($num <=> 0 ) );
 }
 
 
@@ -328,17 +328,17 @@ sub _round {
 
 
 sub _get_num {
-	my ($self, $bytes, $template)=@_;
+    my ($self, $bytes, $template)=@_;
 
-    	unpack $template, $self->get_bytes($bytes);
+    unpack $template, $self->get_bytes($bytes);
 }
 
 
 sub _put_num {
-	my ($self, $num, $template) = @_;
+    my ($self, $num, $template) = @_;
 
 
-	$self->put_bytes(pack($template, _round($num)));
+    $self->put_bytes(pack($template, _round($num)));
 }
 
 
@@ -352,31 +352,29 @@ read or write signed or unsigned 8 bit integers
 =cut
 
 sub get_ui8 {
-	my $self = shift;
-    	$self->_get_num(1, 'C');
+    my $self = shift;
+    $self->_get_num(1, 'C');
 }
 
 
 
 
 sub get_si8 {
-        my $self = shift;
-        $self->_get_num(1, 'c');
+    my $self = shift;
+    $self->_get_num(1, 'c');
 }
 
 
 
 sub put_ui8 {
-	my ($self,$num) = @_;
-  
- 	$self->_put_num($num, 'C');
+    my ($self,$num) = @_;
+    $self->_put_num($num, 'C');
 }
 
 
 sub put_si8 {
-        my ($self,$num) = @_;
-
-        $self->_put_num($num, 'c');
+    my ($self,$num) = @_;
+    $self->_put_num($num, 'c');
 
 }
 
@@ -390,25 +388,26 @@ read or write signed or unsigned 16 bit integers
 =cut
 
 sub get_ui16 {
-        my $self = shift;
-        $self->_get_num(2, $self->{_ui16});
+    my $self = shift;
+    $self->_get_num(2, $self->{_ui16});
 }
 
 
 sub get_si16 {
-        my $self = shift;
+    my $self = shift;
         
-	my $num = $self->get_ui16();
-	$num -= (1<<16) if $num>(1<<15);
-    	return $num;
+    my $num = $self->get_ui16();
+    $num -= (1<<16) if $num>=(1<<15);
+
+    return $num;
 }
 
 
 
 sub put_ui16 {
-        my ($self,$num) = @_;
+    my ($self,$num) = @_;
   
-        $self->_put_num($num, $self->{_ui16});
+    $self->_put_num($num, $self->{_ui16});
 }
 
 *put_si16 = \&put_ui16;
@@ -426,24 +425,24 @@ read or write signed or unsigned 32 bit integers
 
 
 sub get_ui32 {
- 	my $self = shift;
-    	return $self->_get_num(4, $self->{_ui32});
+     my $self = shift;
+     return $self->_get_num(4, $self->{_ui32});
 }
 
 
 sub get_si32 {
-	my $self = shift;
+    my $self = shift;
 
-	my $num = $self->get_ui32();
-    	$num -= (2**32) if ($num>(2**31));
-    	return $num;
+    my $num = $self->get_ui32();
+    $num -= (2**32) if ($num>=(2**31));
+    return $num;
 }
 
 
 sub put_ui32 {
-	my ($self, $num) = @_;
+    my ($self, $num) = @_;
 
-	$self->_put_num($num, $self->{_ui32});
+    $self->_put_num($num, $self->{_ui32});
 }
 
 *put_si32 = \&put_ui32;
@@ -461,30 +460,30 @@ or I<$BIG_ENDIAN>
 sub guess_endian {
 
 
-	#my $svalue = int rand (2**16)-1;
-	#my $lvalue = int rand (2**32)-1;
+    #my $svalue = int rand (2**16)-1;
+    #my $lvalue = int rand (2**32)-1;
 
-	#my $sp = pack("S", $svalue);
-	#my $lp = pack("L", $lvalue);
+    #my $sp = pack("S", $svalue);
+    #my $lp = pack("L", $lvalue);
 
 
-	#if (unpack("V", $lp) == $lvalue && unpack("v", $sp) == $svalue) {
-	#	return $LITTLE_ENDIAN;
-	#} elsif (unpack("N", $lp) == $lvalue && unpack("n", $sp) == $svalue) {
-	#	return $BIG_ENDIAN;
-	#} else {
-	#	carp "Couldn't determine whether this machine is big-endian or little-endian\n";
-	#}
+    #if (unpack("V", $lp) == $lvalue && unpack("v", $sp) == $svalue) {
+    #    return $LITTLE_ENDIAN;
+    #} elsif (unpack("N", $lp) == $lvalue && unpack("n", $sp) == $svalue) {
+    #    return $BIG_ENDIAN;
+    #} else {
+    #    carp "Couldn't determine whether this machine is big-endian or little-endian\n";
+    #}
 
-	my $bo = $Config{'byteorder'};
+    my $bo = $Config{'byteorder'};
 
-	if (1234 == $bo or 12345678 == $bo) {
-		return $LITTLE_ENDIAN;
-	} elsif (4321 == $bo or 87654321 == $bo) {
-		return $BIG_ENDIAN;
-	} else {
-		carp "Unsupported architecture (probably a Cray or weird order)\n";
-	}
+    if (1234 == $bo or 12345678 == $bo) {
+        return $LITTLE_ENDIAN;
+    } elsif (4321 == $bo or 87654321 == $bo) {
+        return $BIG_ENDIAN;
+    } else {
+        carp "Unsupported architecture (probably a Cray or weird order)\n";
+    }
 
 
 }
@@ -498,9 +497,9 @@ until you open up another file;
 =cut
 
 sub close {
-	my $self = shift;
-	$self->{_fh}->close();
-	$self = {};
+    my $self = shift;
+    $self->{_fh}->close();
+    $self = {};
 }
 
 

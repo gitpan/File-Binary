@@ -1,75 +1,63 @@
-README for File::Binary 1.1
+NAME
+    File::Binary - Binary file reading module
 
-=head1 NAME
+SYNOPSIS
+        use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
 
-File::Binary - Binary file reading module
+        my $fb = File::Binary->new("myfile");
+    
+        $fb->get_ui8();
+        $fb->get_ui16();
+        $fb->get_ui32();
+        $fb->get_si8();
+        $fb->get_si16();
+        $fb->get_si32();
 
-=head1 SYNOPSIS
+        $fb->close();
 
-    use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
+        $fb->open(">newfile");
 
-   	my $fb = File::Binary->new("myfile");
-	
-	$fb->get_ui8();
-	$fb->get_ui16();
-	$fb->get_ui32();
-	$fb->get_si8();
-	$fb->get_si16();
-	$fb->get_si32();
+        $fb->put_ui8(255);
+        $fb->put_ui16(65535);
+        $fb->put_ui32(4294967295);
+        $fb->put_si8(-127);
+        $fb->put_si16(-32767);
+        $fb->put_si32(-2147483645);
+    
+        $fb->close();
 
-	$fb->close();
+        $fb->open(IO::Scalar->new($somedata));
+        $fb->set_endian($BIG_ENDIAN); # force endianness
 
-	$fb->open(">newfile");
+        # do what they say on the tin
+        $fb->seek($pos);
+        $fb->tell();
 
-	$fb->put_ui8(255);
-	$fb->put_ui16(65535);
-	$fb->put_ui32(4294967295);
-	$fb->put_si8(-127);
-	$fb->put_si16(-32767);
-	$fb->put_si32(-2147483645);
-	
-	$fb->close();
+        # etc etc
 
+DEPENDENCIES
+    This module has external dependencies on the following modules:
 
-	$fb->open(IO::Scalar->new($somedata));
-	$fb->set_endian($BIG_ENDIAN); # force endianness
+     IO::Scalar
+     Test::More
 
-	# do what they say on the tin
-	$fb->seek($pos);
-	$fb->tell();
+INSTALLATION
+     perl Makefile.PL
+     make test
 
-	# etc etc
+    and if all goes well
 
+     make install
 
+HISTORY
+    Revision history for Perl extension File::Binary.
 
-=head1 DEPENDENCIES
+    1.20 Tue Mar 2 16:20:47 GMT 2004 - fixed a braino spotted by Thomas L.
+    Shinnick
 
-This module has external dependencies on the following modules:
+    1.10 Tue Sep 23 15:43:13 2003 - add in seek and tell after suggestion
+    from Britton Kerin
 
- IO::Scalar
- Test::More
-
-=head1 INSTALLATION
-
- perl Makefile.PL
- make test
-
-and if all goes well
-
- make install
-
-=head1 HISTORY
-
-Revision history for Perl extension File::Binary.
-
-1.10  Tue Sep 23 15:43:13 2003
-	- add in seek and tell after suggestion from Britton Kerin
-
-1.00  Fri Mar 11 09:28:45 2003
-	- finish and uplaod to Cpan
-
-=head1 AUTHOR
-
-Copyright 2003, Simon Wistow <simon@thegestalt.org>
-
+AUTHOR
+    Copyright 2003, Simon Wistow <simon@thegestalt.org>
 
