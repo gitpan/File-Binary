@@ -1,0 +1,146 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+open VALUES, "values.txt" || die "Couldn't open values : $!\n";
+
+my $test;
+my $current_tests = {};
+my $num = 1;
+
+while (<VALUES>) {
+	next if /^\s*$/;
+
+	if (/^Series: (.+)$/) {
+		dump_tests(\$num,$test, $current_tests);
+		$current_tests = {};
+		$test = $1;
+		
+		next;
+	} 
+
+	my ($val, $tests) = split /:/, $_;
+	($val) = split /\s/, $val;
+	my @tests = split /\s/, $tests;
+	foreach my $test (@tests) {
+		push @{$current_tests->{$test}}, $val;
+	}
+
+}
+
+
+sub dump_tests {
+	my ($numr, $test, $current_tests) = @_;
+
+
+	foreach my $key (keys %{$current_tests}) {
+
+		my $filename = "$test.$key.ints";	
+		my @tests = @{$current_tests->{$key}};
+		
+
+
+		my $read  = "";
+		my $write = "";
+		my $modifier = 1;
+		my $func = '$bin->';
+		my $efunc;
+		if ($key =~ s/^u//) {
+			$efunc .= "ui$key";
+		} elsif ($key =~ s/^p//) {
+			$efunc .= "si$key";
+
+		} elsif ($key =~ s/^n//) {
+			$efunc .= "si$key";
+			$modifier = -1;
+		} else {
+			next;
+			#die "Invalid key : '$key'\n";
+		}
+
+		
+		foreach my $test (@tests) {
+			my $val = $test*$modifier;
+		
+			$read  .=  "is(${func}get_${efunc}(),$val);\n";
+			$write .=  "ok(${func}put_${efunc}($val));\n";
+		}
+		
+		my $tfile = sprintf "%.2d%s", $$numr++, $filename;
+
+		
+		open TEST, ">$tfile.be.t" || die "Couldn't open $tfile : $!\n";
+		print TEST <<"EOF";
+#!perl -w
+
+use strict;
+use Test::More qw(no_plan);
+use File::Binary;
+
+my \$bin = File::Binary->new('t/be.$filename');
+\$bin->set_endian(\$File::Binary::BIG_ENDIAN);
+
+$read
+
+\$bin->close();
+
+
+
+\$bin = File::Binary->new('>t/temp');
+\$bin->set_endian(\$File::Binary::BIG_ENDIAN);
+
+$write
+
+\$bin->close();
+
+
+\$bin = File::Binary->new('t/temp');
+\$bin->set_endian(\$File::Binary::BIG_ENDIAN);
+
+$read
+
+\$bin->close();
+
+EOF
+		close TEST;
+
+               open TEST, ">$tfile.le.t" || die "Couldn't open $tfile : $!\n";
+                print TEST <<"EOF";
+#!perl -w
+
+use strict;
+use Test::More qw(no_plan);
+use File::Binary;
+
+my \$bin = File::Binary->new('t/le.$filename');
+\$bin->set_endian(\$File::Binary::LITTLE_ENDIAN);
+
+$read
+
+\$bin->close();
+
+
+
+\$bin = File::Binary->new('>t/temp');
+\$bin->set_endian(\$File::Binary::LITTLE_ENDIAN);
+
+$write
+
+\$bin->close();
+
+
+\$bin = File::Binary->new('t/temp');
+\$bin->set_endian(\$File::Binary::LITTLE_ENDIAN);
+
+$read
+
+\$bin->close();
+
+EOF
+                close TEST;
+
+		
+
+
+	}
+}

@@ -1,65 +1,70 @@
-File::Binary 
-by Simon Wistow (simon@twoshortplanks.com)
+README for File::Binary 1.0
+
+=head1 NAME
+
+File::Binary - Binary file reading module
+
+=head1 SYNOPSIS
+
+    	use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
+
+   	my $fb = File::Binary->new("myfile");
+	
+	$fb->get_ui8();
+	$fb->get_ui16();
+	$fb->get_ui32();
+	$fb->get_si8();
+	$fb->get_si16();
+	$fb->get_si32();
+
+	$fb->close();
+
+	$fb->open(">newfile");
+
+	$fb->put_ui8(255);
+	$fb->put_ui16(65535);
+	$fb->put_ui32(4294967295);
+	$fb->put_si8(-127);
+	$fb->put_si16(-32767);
+	$fb->put_si32(-2147483645);
+	
+	$fb->close();
 
 
-A very Beta Perl module for Binary manipulation of files. 
+	$fb->open(IO::Scalar->new($somedata));
+	$fb->set_endian($BIG_ENDIAN); # force endianness
 
-perl Makefile.PL
-make
-make test
-make install
-
-
-19-11-99
-Completley rewritten ... it's not as efficent now (it loads the whole file into a list) but at least it doesn't keep falling over.
-
-
-NAME
-       File::Binary - Binary file reading module
-
-SYNOPSIS
-           use File::Binary;
-
-           # open an SWF file as a new File::Binary object ...
-           $bin = new File::Binary('test.swf') or die "Couldn't open test.swf\n";
-           # ... and check tos ee that it's a valid SWF file
-           $bin->getBytes(3) eq 'FWS' or die $bin->getFilename()." is not a valid SWF file\n";
-
-           # get bytes and words
-           $format = unpack("C",$bin->getBytes(1));
-           $width  = $bin->getWord;
-
-           # get bits and signed bits
-           $hasloops = $bin->getBits(1);
-           $hasend   = $bin->getSBits(2):
-
-           # find out where you are
-           print "File Position : " . $bin->where() . "\n";
-
-           # seek to arbitary places in the file
-           $bin->seekTo($bin->where + 100) or die "Couldn't seek to that position\n";
-
-           # make sure that all the bit buffers are flushed and reset
-           $bin->initBits;
+	# etc etc
 
 
 
+=head1 DEPENDENCIES
+
+This module has external dependencies on the following modules:
+
+ IO::Scalar
+ Test::More
+
+=head1 INSTALLATION
+
+ perl Makefile.PL
+ make test
+
+and if all goes well
+
+ make install
+
+=head1 HISTORY
+
+Revision history for Perl extension IO::Binary.
+
+0.01  Mon Feb 10 16:40:03 2003
+	- original version; created by h2xs 1.21 with options
+		-X IO::Binary
 
 
-DESCRIPTION
-       File::Binary is a Binary file reading module. It is
-       currently being used to write a suite of modules for
-       manipulating Macromedia SWF files available from the
-       section on /www.twoshortplanks.com/simon/flash/ in the
-       http: manpage </gratuitous plug>, and as such is heavily
-       biased towards this.
+=head1 AUTHOR
 
-       It currently it slurps all of the file into an array which
-       makes it unsuitable for anythign but small files. This
-       will hopefully be changed in later versions.
+Copyright 2003, Simon Wistow <simon@thegestalt.org>
 
-BUGS
-       getSBits does not handle negative numbers well.
 
-AUTHOR
-       Simon Wistow, <simon@twoshortplanks.com>

@@ -1,18 +1,22 @@
-## File::Binary ##
+package File::Binary;
 
-package   File::Binary;
+# importage
 use strict;
-use Exporter;
+use Carp;
+use Config;
 use IO::File;
-use vars qw(@ISA @EXPORT_OK $DEBUG $VERSION);
+use vars qw(@EXPORT_OK $VERSION $BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN $AUTOLOAD);
 
-@ISA       = qw(Exporter);
-@EXPORT_OK = qw(new getBytes getBits getSBits seekTo getFilename getWord initBits);
+# yay! finally 
+$VERSION='1.0';
 
-$DEBUG     = 1;
-$VERSION   = '0.3';
+# set up some constants
+$BIG_ENDIAN     = 2;
+$LITTLE_ENDIAN  = 1;
+$NATIVE_ENDIAN  = 0;
 
-########################################################################
+# and export them
+@EXPORT_OK = qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN guess_endian);
 
 
 =head1 NAME
@@ -21,187 +25,453 @@ File::Binary - Binary file reading module
 
 =head1 SYNOPSIS
 
-    use File::Binary;
-    
-    # open an SWF file as a new File::Binary object ...
-     $bin = new File::Binary('test.swf') or die "Couldn't open test.swf\n";
-    # ... and check tos ee that it's a valid SWF file
-    $bin->getBytes(3) eq 'FWS' or die $bin->getFilename()." is not a valid SWF file\n";
-    
-    # get bytes and words
-    $format = unpack("C",$bin->getBytes(1));
-    $width  = $bin->getWord;
-    
-    # get bits and signed bits
-    $hasloops = $bin->getBits(1);
-    $hasend   = $bin->getSBits(2):
-    
-    # find out where you are
-    print "File Position : " . $bin->where() . "\n";
-    
-    # seek to arbitary places in the file
-    $bin->seekTo($bin->where + 100) or die "Couldn't seek to that position\n";
-    
-    # make sure that all the bit buffers are flushed and reset
-    $bin->initBits;
-    
-    
-    
+    	use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
+
+   	my $fb = File::Binary->new("myfile");
+	
+	$fb->get_ui8();
+	$fb->get_ui16();
+	$fb->get_ui32();
+	$fb->get_si8();
+	$fb->get_si16();
+	$fb->get_si32();
+
+	$fb->close();
+
+	$fb->open(">newfile");
+
+	$fb->put_ui8(255);
+	$fb->put_ui16(65535);
+	$fb->put_ui32(4294967295);
+	$fb->put_si8(-127);
+	$fb->put_si16(-32767);
+	$fb->put_si32(-2147483645);
+	
+	$fb->close();
+
+
+	$fb->open(IO::Scalar->new($somedata));
+	$fb->set_endian($BIG_ENDIAN); # force endianness
+
+	# etc etc
 
 
 =head1 DESCRIPTION
 
-I<File::Binary> is a Binary file reading module. It is currently being used to 
-write a suite of modules for manipulating Macromedia SWF files available from 
-L<http://www.twoshortplanks.com/simon/flash/> </gratuitous plug>, and as such is
-heavily biased towards this.
+B<File::Binary> is a Binary file reading module, hence the name, 
+and was originally used to write a suite of modules for manipulating 
+Macromedia SWF files. 
+
+However it's grown beyond that and now actually, err, works. 
+And is generalised. And EVERYTHING! Yay!
+
+It has methods for reading and writing signed and unsigned 8, 16 and 
+32 bit integers, at some point in the future I'll figure out a way of 
+putting in methods for >32bit integers nicely but until then, patches 
+welcome.
+
+It hasn't reatined backwards compatability with the old version of this 
+module for cleanliness sakes and also because the old interface was 
+pretty brain  dead.
+
+=head1 METHODS
+
+=head2 new
+
+Pass in either a file name or something which isa an IO::Handle.
+
+=cut 
+
+sub new {
+	my ($class, $file) = @_;
+
+	my $self = {};
+	
+	bless $self,  $class;
+
+	$self->open($file);
+	$self->set_endian($NATIVE_ENDIAN);
+
+	return $self;
+}
+
+=head2 open
+
+Pass in either a file name or something which isa an IO::Handle.
+
+=cut 
+
+sub open {
+	my ($self, $file) = @_;
+    
+	my $fh;
+	my $writeable = -1;
+
+	if (ref($fh) =~ /^IO::/ && $file->isa('IO::Handle')) {
+		$fh = $file;
+		$writeable = 2; # read and write mode 
+	} else {
+		$fh = IO::File->new($file) || die "No such file $file\n";
+		if ($file =~ /^>/) {
+			$writeable = 1;
+		} elsif ($file =~ /^\+>/) {
+			$writeable=2;
+		}
+
+	}
 
 
-=head1 BUGS
 
-getSBits does not handle negative numbers well.
+    	$self->{_bitbuf}    = '';
+	$self->{_bitpos}    = 0;
+	$self->{_fh}        = $fh;
+	$self->{_fhpos}     = 0;
+	$self->{_flush}     = 1;
+	$self->{_writeable} = $writeable;
+	      	
 
-It used to slurp B<all> of the file into an array which made it very
-unsuitable for large files. This was fixed in version 0.3 by Leon
-Brocard. There may be problems with the filehandle returning 
-undef for no particular reason.
+	return $self;
+}
 
 
-=head1 AUTHOR
+=head2 set_flush
 
-Simon Wistow, <simon@twoshortplanks.com>
+To flush or not to flush. That is the question
 
+=cut
+
+sub set_flush {
+	 my ($self, $flush) = @_;
+
+	$self->{_flush} = $flush;
+}
+
+
+=head2 set_endian
+
+Set the how the module reads files. The options are
+
+	$BIG_ENDIAN 
+	$LITTLE_ENDIAN 
+	$NATIVE_ENDIAN
+
+
+I<NATIVE> will deduce  the endianess of the current system.
+
+=cut
+
+sub set_endian {
+	my ($self, $endian) = @_;
+
+	$endian ||= $NATIVE_ENDIAN;
+
+	$endian = guess_endian() if ($endian == $NATIVE_ENDIAN);
+
+	if ($endian == $BIG_ENDIAN) {
+		$self->{_ui16} = 'v';
+		$self->{_ui32} = 'V';
+	} else {
+		$self->{_ui16} = 'n';
+		$self->{_ui32} = 'N';
+	}
+
+	$self->{_endian} = $endian;		
+
+}
+
+
+sub _init_bits {
+	my $self = shift;
+
+	if ($self->{_writeable}) {
+		$self->_init_bits_write();
+	} else {
+		$self->_init_bits_read();
+	}
+}
+
+
+sub _init_bits_write {
+    my $self = shift;
+
+    my $bits = $self->{'_bitbuf'};
+
+    my $len  = length($bits);
+
+    return if $len<=0;
+
+    $self->{'_bitbuf'} = '';
+    $self->{_fh}->write(pack('B8', $bits.('0'x(8-$len))));
+
+}
+
+sub _init_bits_read {
+	my $self = shift;  
+  
+	$self->{_pos}  = 0;
+  	$self->{_bits} = 0;
+
+}
+
+
+=head2 get_bytes
+
+Get an arbitary number of bytes from the file.
+
+=cut
+
+sub get_bytes {
+	my ($self, $bytes) = @_;
+	
+	$bytes = int $bytes;
+
+	carp("Must be positive number")                  if ($bytes <1);
+	carp("This file has been opened in write mode.") if $self->{_writeable} == 1;
+
+	$self->_init_bits() if $self->{_flush};
+  	
+	$self->{_fh}->read(my $data, $bytes);
+
+	$self->{_fhpos} += $bytes;
+
+  	return $data;
+}
+  
+
+=head2 put_bytes
+
+Write some bytes
+
+=cut
+
+sub put_bytes {
+	my ($self, $bytes) = @_;
+
+	
+	carp("This file has been opened in read mode.") unless $self->{_writeable};
+
+	## TODO?	
+	#$self->_init_bits;
+	$self->{_fh}->write($bytes);
+}
+
+
+
+
+# we could use POSIX::ceil here but I ph34r the POSIX lib
+sub _round {
+	my $num = shift || 0;
+
+    	return int ($num + 0.5 * ($num <=> 0 ) );
+}
+
+
+
+
+
+sub _get_num {
+	my ($self, $bytes, $template)=@_;
+
+    	unpack $template, $self->get_bytes($bytes);
+}
+
+
+sub _put_num {
+	my ($self, $num, $template) = @_;
+
+
+	$self->put_bytes(pack($template, _round($num)));
+}
+
+
+
+## 8 bit
+
+=head2 get_ui8 get_si8 put_ui8 put_si8
+
+read or write signed or unsigned 8 bit integers
+
+=cut
+
+sub get_ui8 {
+	my $self = shift;
+    	$self->_get_num(1, 'C');
+}
+
+
+
+
+sub get_si8 {
+        my $self = shift;
+        $self->_get_num(1, 'c');
+}
+
+
+
+sub put_ui8 {
+	my ($self,$num) = @_;
+  
+ 	$self->_put_num($num, 'C');
+}
+
+
+sub put_si8 {
+        my ($self,$num) = @_;
+
+        $self->_put_num($num, 'c');
+
+}
+
+
+## 16 bit 
+
+=head2 get_ui16 get_si16 put_ui16 put_si16
+
+read or write signed or unsigned 16 bit integers
+
+=cut
+
+sub get_ui16 {
+        my $self = shift;
+        $self->_get_num(2, $self->{_ui16});
+}
+
+
+sub get_si16 {
+        my $self = shift;
+        
+	my $num = $self->get_ui16();
+	$num -= (1<<16) if $num>(1<<15);
+    	return $num;
+}
+
+
+
+sub put_ui16 {
+        my ($self,$num) = @_;
+  
+        $self->_put_num($num, $self->{_ui16});
+}
+
+*put_si16 = \&put_ui16;
+
+
+
+## 32 bit
+
+=head2 get_ui32 get_s32 put_ui32 put_si32
+
+read or write signed or unsigned 32 bit integers
 
 =cut
 
 
-sub new {
-  my ($class, $filename) = @_;
-  my $self = {};
 
-  my $fh = new IO::File($filename) || return; # returns undef on error
-  
-  $self->{filehandle} = $fh;
-  $self->{filename} = $filename;
-  $self->{_bitPos}  = 0;
-  $self->{_bitBuf}  = 0;
-#  $self->{_filepos} = 0;
-  $self->{debug}    = $DEBUG;
-#  $self->{buf}      = [];
-    
-  bless $self, $class;            
-  return $self;
+sub get_ui32 {
+ 	my $self = shift;
+    	return $self->_get_num(4, $self->{_ui32});
+}
+
+
+sub get_si32 {
+	my $self = shift;
+
+	my $num = $self->get_ui32();
+    	$num -= (2**32) if ($num>(2**31));
+    	return $num;
+}
+
+
+sub put_ui32 {
+	my ($self, $num) = @_;
+
+	$self->_put_num($num, $self->{_ui32});
+}
+
+*put_si32 = \&put_ui32;
+
+
+
+
+=head2 guess_endian 
+
+Guess the endianness of this system. Returns either I<$LITTLE_ENDIAN> 
+or I<$BIG_ENDIAN>
+
+=cut
+
+sub guess_endian {
+
+
+	#my $svalue = int rand (2**16)-1;
+	#my $lvalue = int rand (2**32)-1;
+
+	#my $sp = pack("S", $svalue);
+	#my $lp = pack("L", $lvalue);
+
+
+	#if (unpack("V", $lp) == $lvalue && unpack("v", $sp) == $svalue) {
+	#	return $LITTLE_ENDIAN;
+	#} elsif (unpack("N", $lp) == $lvalue && unpack("n", $sp) == $svalue) {
+	#	return $BIG_ENDIAN;
+	#} else {
+	#	carp "Couldn't determine whether this machine is big-endian or little-endian\n";
+	#}
+
+	my $bo = $Config{'byteorder'};
+
+	if (1234 == $bo or 12345678 == $bo) {
+		return $LITTLE_ENDIAN;
+	} elsif (4321 == $bo or 87654321 == $bo) {
+		return $BIG_ENDIAN;
+	} else {
+		carp "Unsupported architecture (probably a Cray or weird order)\n";
+	}
+
 
 }
 
 
-sub initBits() {
-  my $self = shift;  
-  
-  $self->{_bitPos} = 0;
-  $self->{_bitBuf} = 0;
+=head2 close
+ 
+Close the file up. The I<File::Binary> object will then be useless 
+until you open up another file;
 
-}
+=cut
 
-
-sub getBytes {
-  my ($self, $bytes) = @_;
-
-  $self->{_bitPos} = 0;
-  $self->{_bitBuf} = 0;
-  
-  $self->{filehandle}->read(my $data, $bytes);
-  return $data;
-}
-  
-
-sub where {
-  my $self = shift;
-  
-  return $self->{filehandle}->tell;
-}    
-
-
-sub getFilename {
-  my $self = shift;
-  
-  return $self->{filename};
-}
-
-
-sub getBits {
-  my ($self, $bits) = @_;
-  my $data = 0; # the return value
-  
-  for (;;) {
-      
-    # we want to know if we should use the whole byte.
-    my $s =  $bits - $self->{_bitPos};
-    
-    if ( $s > 0 ) {
-      
-      # all these bits are ours
-      $data |= $self->{_bitBuf} << $s;
-      $bits -= $self->{_bitPos};
-      
-      # get the next buffer
-      $self->{_bitBuf} = unpack("C", $self->getBytes(1));
-      $self->{_bitPos} = 8;
-      
-    } else {
-      
-      # this is our last byte, take only the bits we need
-      $data |= $self->{_bitBuf} >> ( -$s );
-      $self->{_bitPos} -= $bits;
-      
-      # mask off the consumed bits
-      $self->{_bitBuf} &= 0xff >> (8 - $self->{_bitPos});
-      return $data;
-    }
-  }
-}
-
-
-# same as _GetBits, but signed
-# there are problems with this returning negative numbers
-# my hack at extending the sign didn't work because Perl
-# does that all internally.
-sub getSBits { 
-  my ($self, $bits) = @_;
-  
-  return $self->getBits($bits);
-  
-  # Is the number negative?
-  #if ($data & (1 << ($bits - 1))) {
-  #  # Yes. Extend the sign.
-  #  $data |= -1 << $bits;
-  #}
-  #return $data;
+sub close {
+	my $self = shift;
+	$self->{_fh}->close();
+	$self = {};
 }
 
 
 
+=pod
 
-sub seekTo {
-  my ($self, $position) = @_;
-  
-  return $self->{filehandle}->seek($position, 0);
-}
+=head1 BUGS
 
+Can't do numbers greater than 32 bits.
 
-sub getWord {
-  my $self = shift;
-  
-  return unpack("C", $self->getBytes(1)) | unpack("C", $self->getBytes(1)) << 8;  
-}
+Can't extarct Floating Point or Fixed Point numbers.
 
-sub getDWord {
- my $self = shift;
+Can't extract null terminated strings.
 
-  return unpack("C", $self->getBytes(1)) | unpack("C", $self->getBytes(1)) << 8 | unpack("C", $self->getBytes(1)) << 16 | unpack("C", $self->getBytes(1)) << 24;  
-  
+=head1 COPYING
+
+(c)opyright 2002, Simon Wistow
+
+Distributed under the same terms as Perl itself.
+
+This software is under no warranty and will probably ruin your life, kill your friends, burn your house and bring about the apocalypse
 
 
-}
+=head1 AUTHOR
+
+Copyright 2003, Simon Wistow <simon@thegestalt.org>
+
+
+=cut
+
 
 1;
