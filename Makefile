@@ -1,7 +1,7 @@
 # This Makefile is for the File::Binary extension to perl.
 #
 # It was generated automatically by MakeMaker version
-# 5.4302 (Revision: 1.222) from the contents of
+# 5.4302 (Revision: 1.1.1.1.2.1) from the contents of
 # Makefile.PL. Don't edit this file, edit Makefile.PL instead.
 #
 #	ANY CHANGES MADE HERE WILL BE LOST!
@@ -18,23 +18,23 @@
 
 # --- MakeMaker const_config section:
 
-# These definitions are from config.sh (via /usr/lib/perl5/5.00503/i686-linux/Config.pm)
+# These definitions are from config.sh (via /usr/libdata/perl/5.00503/mach/Config.pm)
 
 # They may have been overridden via Makefile.PL or on the command line
 AR = ar
 CC = cc
-CCCDLFLAGS = -fpic
-CCDLFLAGS = -rdynamic
+CCCDLFLAGS = -DPIC -fpic
+CCDLFLAGS =  
 DLEXT = so
 DLSRC = dl_dlopen.xs
 LD = cc
-LDDLFLAGS = -shared -L/usr/local/lib
-LDFLAGS =  -L/usr/local/lib
-LIBC = 
+LDDLFLAGS = -shared
+LDFLAGS = -Wl,-E
+LIBC = /usr/lib/libc.so
 LIB_EXT = .a
 OBJ_EXT = .o
-OSNAME = linux
-OSVERS = 2.2.12
+OSNAME = freebsd
+OSVERS = 4.0-current
 RANLIB = :
 SO = so
 EXE_EXT = 
@@ -55,30 +55,30 @@ INST_ARCHLIB = blib/arch
 INST_SCRIPT = blib/script
 PREFIX = /usr
 INSTALLDIRS = site
-INSTALLPRIVLIB = $(PREFIX)/lib/perl5/5.00503
-INSTALLARCHLIB = $(PREFIX)/lib/perl5/5.00503/i686-linux
-INSTALLSITELIB = $(PREFIX)/lib/perl5/site_perl/5.005
-INSTALLSITEARCH = $(PREFIX)/lib/perl5/site_perl/5.005/i686-linux
+INSTALLPRIVLIB = /usr/libdata/perl/5.00503
+INSTALLARCHLIB = /usr/libdata/perl/5.00503/mach
+INSTALLSITELIB = /usr/local/lib/perl5/site_perl/5.005
+INSTALLSITEARCH = /usr/local/lib/perl5/site_perl/5.005/i386-freebsd
 INSTALLBIN = $(PREFIX)/bin
 INSTALLSCRIPT = $(PREFIX)/bin
-PERL_LIB = /usr/lib/perl5/5.00503
-PERL_ARCHLIB = /usr/lib/perl5/5.00503/i686-linux
-SITELIBEXP = /usr/lib/perl5/site_perl/5.005
-SITEARCHEXP = /usr/lib/perl5/site_perl/5.005/i686-linux
+PERL_LIB = /usr/libdata/perl/5.00503
+PERL_ARCHLIB = /usr/libdata/perl/5.00503/mach
+SITELIBEXP = /usr/local/lib/perl5/site_perl/5.005
+SITEARCHEXP = /usr/local/lib/perl5/site_perl/5.005/i386-freebsd
 LIBPERL_A = libperl.a
 FIRST_MAKEFILE = Makefile
 MAKE_APERL_FILE = Makefile.aperl
 PERLMAINCC = $(CC)
-PERL_INC = /usr/lib/perl5/5.00503/i686-linux/CORE
-PERL = /usr/local/bin/perl
-FULLPERL = /usr/local/bin/perl
+PERL_INC = /usr/libdata/perl/5.00503/mach/CORE
+PERL = /usr/bin/perl
+FULLPERL = /usr/bin/perl
 
 VERSION_MACRO = VERSION
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 
-MAKEMAKER = /usr/lib/perl5/5.00503/ExtUtils/MakeMaker.pm
+MAKEMAKER = /usr/libdata/perl/5.00503/ExtUtils/MakeMaker.pm
 MM_VERSION = 5.4302
 
 # FULLEXT = Pathname for extension directory (eg Foo/Bar/Oracle).
@@ -103,10 +103,10 @@ H_FILES =
 MAN1PODS = 
 MAN3PODS = Binary.pm
 INST_MAN1DIR = blib/man1
-INSTALLMAN1DIR = /usr/man/man1
+INSTALLMAN1DIR = /usr/local/man/man1
 MAN1EXT = 1
 INST_MAN3DIR = blib/man3
-INSTALLMAN3DIR = /usr/lib/perl5/5.00503/man/man3
+INSTALLMAN3DIR = /usr/local/lib/perl5/5.00503/man/man3
 MAN3EXT = 3
 PERM_RW = 644
 PERM_RWX = 755
@@ -288,21 +288,21 @@ config :: Version_check
 	@$(NOOP)
 
 
-$(INST_AUTODIR)/.exists :: /usr/lib/perl5/5.00503/i686-linux/CORE/perl.h
+$(INST_AUTODIR)/.exists :: /usr/libdata/perl/5.00503/mach/CORE/perl.h
 	@$(MKPATH) $(INST_AUTODIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/lib/perl5/5.00503/i686-linux/CORE/perl.h $(INST_AUTODIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/libdata/perl/5.00503/mach/CORE/perl.h $(INST_AUTODIR)/.exists
 
 	-@$(CHMOD) $(PERM_RWX) $(INST_AUTODIR)
 
-$(INST_LIBDIR)/.exists :: /usr/lib/perl5/5.00503/i686-linux/CORE/perl.h
+$(INST_LIBDIR)/.exists :: /usr/libdata/perl/5.00503/mach/CORE/perl.h
 	@$(MKPATH) $(INST_LIBDIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/lib/perl5/5.00503/i686-linux/CORE/perl.h $(INST_LIBDIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/libdata/perl/5.00503/mach/CORE/perl.h $(INST_LIBDIR)/.exists
 
 	-@$(CHMOD) $(PERM_RWX) $(INST_LIBDIR)
 
-$(INST_ARCHAUTODIR)/.exists :: /usr/lib/perl5/5.00503/i686-linux/CORE/perl.h
+$(INST_ARCHAUTODIR)/.exists :: /usr/libdata/perl/5.00503/mach/CORE/perl.h
 	@$(MKPATH) $(INST_ARCHAUTODIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/lib/perl5/5.00503/i686-linux/CORE/perl.h $(INST_ARCHAUTODIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/libdata/perl/5.00503/mach/CORE/perl.h $(INST_ARCHAUTODIR)/.exists
 
 	-@$(CHMOD) $(PERM_RWX) $(INST_ARCHAUTODIR)
 
@@ -310,9 +310,9 @@ config :: $(INST_MAN3DIR)/.exists
 	@$(NOOP)
 
 
-$(INST_MAN3DIR)/.exists :: /usr/lib/perl5/5.00503/i686-linux/CORE/perl.h
+$(INST_MAN3DIR)/.exists :: /usr/libdata/perl/5.00503/mach/CORE/perl.h
 	@$(MKPATH) $(INST_MAN3DIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/lib/perl5/5.00503/i686-linux/CORE/perl.h $(INST_MAN3DIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/libdata/perl/5.00503/mach/CORE/perl.h $(INST_MAN3DIR)/.exists
 
 	-@$(CHMOD) $(PERM_RWX) $(INST_MAN3DIR)
 
@@ -594,7 +594,7 @@ Makefile : Makefile.PL $(CONFIGDEP)
 
 # --- MakeMaker makeaperl section ---
 MAP_TARGET    = perl
-FULLPERL      = /usr/local/bin/perl
+FULLPERL      = /usr/bin/perl
 
 $(MAP_TARGET) :: static $(MAKE_APERL_FILE)
 	$(MAKE) -f $(MAKE_APERL_FILE) $@
@@ -634,7 +634,7 @@ testdb_static :: testdb_dynamic
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd:
-	@$(PERL) -e "print qq{<SOFTPKG NAME=\"File-Binary\" VERSION=\"0,3,0,0\">\n}. qq{\t<TITLE>File-Binary</TITLE>\n}. qq{\t<ABSTRACT></ABSTRACT>\n}. qq{\t<AUTHOR></AUTHOR>\n}. qq{\t<IMPLEMENTATION>\n}. qq{\t\t<OS NAME=\"$(OSNAME)\" />\n}. qq{\t\t<ARCHITECTURE NAME=\"i686-linux\" />\n}. qq{\t\t<CODEBASE HREF=\"\" />\n}. qq{\t</IMPLEMENTATION>\n}. qq{</SOFTPKG>\n}" > File-Binary.ppd
+	@$(PERL) -e "print qq{<SOFTPKG NAME=\"File-Binary\" VERSION=\"0,3,0,0\">\n}. qq{\t<TITLE>File-Binary</TITLE>\n}. qq{\t<ABSTRACT></ABSTRACT>\n}. qq{\t<AUTHOR></AUTHOR>\n}. qq{\t<IMPLEMENTATION>\n}. qq{\t\t<OS NAME=\"$(OSNAME)\" />\n}. qq{\t\t<ARCHITECTURE NAME=\"i386-freebsd\" />\n}. qq{\t\t<CODEBASE HREF=\"\" />\n}. qq{\t</IMPLEMENTATION>\n}. qq{</SOFTPKG>\n}" > File-Binary.ppd
 
 # --- MakeMaker pm_to_blib section:
 

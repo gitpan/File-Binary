@@ -63,8 +63,7 @@ getSBits does not handle negative numbers well.
 
 It used to slurp B<all> of the file into an array which made it very
 unsuitable for large files. This was fixed in version 0.3 by Leon
-Brocard. There may be problems with the filehandle returning 
-undef for no particular reason.
+Brocard.
 
 
 =head1 AUTHOR

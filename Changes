@@ -3,3 +3,5 @@ Revision history for Perl extension File::Binary.
 0.02  Wed Mar  8 15:30:21 2000
 	- original version; created by h2xs 1.1.1.1.2.1
 
+0.03  Wed Mar  15 12:14:36 2000
+  - added some go-faster patches from Leon Brocard
