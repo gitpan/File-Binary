@@ -1,6 +1,14 @@
-Revision history for Perl extension IO::Binary.
+Revision history for Perl extension File::Binary.
 
-0.01  Mon Feb 10 16:40:03 2003
-	- original version; created by h2xs 1.21 with options
-		-X IO::Binary
+1.10  Tue Sep 23 15:43:13 2003
+	- add in seek and tell after suggestion from Britton Kerin
+
+1.00  Fri Mar 11 09:28:45 2003
+	- finish and uplaod to Cpan
+
+0.90  Mon Feb 10 16:40:03 2003
+	- completely rewritten 
+
+0.02  Wed Mar  8 15:30:21 2000
+	- original version; created by h2xs 1.1.1.1.2.1
 

@@ -1,4 +1,4 @@
-README for File::Binary 1.0
+README for File::Binary 1.1
 
 =head1 NAME
 
@@ -6,7 +6,7 @@ File::Binary - Binary file reading module
 
 =head1 SYNOPSIS
 
-    	use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
+    use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
 
    	my $fb = File::Binary->new("myfile");
 	
@@ -34,6 +34,10 @@ File::Binary - Binary file reading module
 	$fb->open(IO::Scalar->new($somedata));
 	$fb->set_endian($BIG_ENDIAN); # force endianness
 
+	# do what they say on the tin
+	$fb->seek($pos);
+	$fb->tell();
+
 	# etc etc
 
 
@@ -56,12 +60,13 @@ and if all goes well
 
 =head1 HISTORY
 
-Revision history for Perl extension IO::Binary.
+Revision history for Perl extension File::Binary.
 
-0.01  Mon Feb 10 16:40:03 2003
-	- original version; created by h2xs 1.21 with options
-		-X IO::Binary
+1.10  Tue Sep 23 15:43:13 2003
+	- add in seek and tell after suggestion from Britton Kerin
 
+1.00  Fri Mar 11 09:28:45 2003
+	- finish and uplaod to Cpan
 
 =head1 AUTHOR
 

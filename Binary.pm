@@ -5,10 +5,13 @@ use strict;
 use Carp;
 use Config;
 use IO::File;
-use vars qw(@EXPORT_OK $VERSION $BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN $AUTOLOAD);
+use vars qw(@EXPORT_OK $VERSION $BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN $AUTOLOAD $DEBUG);
 
 # yay! finally 
-$VERSION='1.0';
+$VERSION='1.1';
+
+# for seekable stuff
+$DEBUG = 0;
 
 # set up some constants
 $BIG_ENDIAN     = 2;
@@ -25,7 +28,7 @@ File::Binary - Binary file reading module
 
 =head1 SYNOPSIS
 
-    	use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
+    use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
 
    	my $fb = File::Binary->new("myfile");
 	
@@ -52,6 +55,10 @@ File::Binary - Binary file reading module
 
 	$fb->open(IO::Scalar->new($somedata));
 	$fb->set_endian($BIG_ENDIAN); # force endianness
+
+	# do what they say on the tin
+	$fb->seek($pos);
+	$fb->tell();
 
 	# etc etc
 
@@ -92,6 +99,7 @@ sub new {
 	$self->open($file);
 	$self->set_endian($NATIVE_ENDIAN);
 
+
 	return $self;
 }
 
@@ -122,16 +130,66 @@ sub open {
 
 
 
-    	$self->{_bitbuf}    = '';
-	$self->{_bitpos}    = 0;
-	$self->{_fh}        = $fh;
-	$self->{_fhpos}     = 0;
-	$self->{_flush}     = 1;
-	$self->{_writeable} = $writeable;
+    $self->{_bitbuf}      = '';
+	$self->{_bitpos}      = 0;
+	$self->{_fh}          = $fh;
+	$self->{_fhpos}       = 0;
+	$self->{_flush}       = 1;
+	$self->{_writeable}   = $writeable;
+	$self->{_is_seekable} = UNIVERSAL::isa($fh,'IO::Seekable')?1:0;
 	      	
 
 	return $self;
 }
+
+=head2 seek
+
+Seek to a position.
+
+Return our current position. If our file handle is not 
+B<ISA IO::Seekable> it will return 0 and, if 
+B<$File::Binary::DEBUG> is set to 1, there will be a warning.
+
+Returns the current file position.
+
+
+=cut
+
+sub seek {
+	my $self = shift;
+	my $seek = shift;
+    unless ($self->{_is_seekable}) {
+        carp "FH is not seekable" if $DEBUG; 
+        return 0;
+    }
+
+	$self->{_fh}->seek($seek) if defined $seek;
+	$self->_init_bits();
+    return $self->{_fh}->tell();
+
+
+	
+}
+
+=head2 tell
+
+Return our current position. If our file handle is not 
+B<ISA IO::Seekable> then it will return 0 and, if
+B<$File::Binary::DEBUG> is set to 1, there will be a
+warning.
+
+=cut
+
+sub tell {
+	my $self = shift;
+	unless ($self->{_is_seekable}) {
+		carp "FH is not seekable" if $DEBUG;
+		return 0;
+	}
+
+	return $self->{_fh}->tell();
+}
+
 
 
 =head2 set_flush
@@ -453,9 +511,11 @@ sub close {
 
 Can't do numbers greater than 32 bits.
 
-Can't extarct Floating Point or Fixed Point numbers.
+Can't extract Floating Point or Fixed Point numbers.
 
 Can't extract null terminated strings.
+
+Needs tests for seeking and telling.
 
 =head1 COPYING
 
