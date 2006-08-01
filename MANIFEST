@@ -1,8 +1,9 @@
-Binary.pm
+lib/File/Binary.pm
 Changes
 Makefile.PL
 MANIFEST
 README
+t/00seek.t
 t/01power3.u8.ints.be.t
 t/01power3.u8.ints.le.t
 t/02power3.n32.ints.be.t
@@ -166,3 +167,4 @@ t/le.special.p8.ints
 t/le.special.u16.ints
 t/le.special.u32.ints
 t/le.special.u8.ints
+META.yml                                 Module meta-data (added by MakeMaker)

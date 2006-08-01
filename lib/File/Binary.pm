@@ -6,9 +6,10 @@ use Carp;
 use Config;
 use IO::File;
 use vars qw(@EXPORT_OK $VERSION $BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN $AUTOLOAD $DEBUG);
+use Fcntl qw(:DEFAULT);
 
 # yay! finally 
-$VERSION='1.2';
+$VERSION='1.3';
 
 # for seekable stuff
 $DEBUG = 0;
@@ -150,6 +151,9 @@ Return our current position. If our file handle is not
 B<ISA IO::Seekable> it will return 0 and, if 
 B<$File::Binary::DEBUG> is set to 1, there will be a warning.
 
+You can optionally pass a whence option in the same way as
+the builtin Perl seek() method. It defaults to C<SEEK_SET>.
+
 Returns the current file position.
 
 
@@ -158,12 +162,13 @@ Returns the current file position.
 sub seek {
     my $self = shift;
     my $seek = shift;
+    my $whence = shift || SEEK_SET;
     unless ($self->{_is_seekable}) {
         carp "FH is not seekable" if $DEBUG; 
         return 0;
     }
 
-    $self->{_fh}->seek($seek) if defined $seek;
+    $self->{_fh}->seek($seek, $whence) if defined $seek;
     $self->_init_bits();
     return $self->{_fh}->tell();
 
