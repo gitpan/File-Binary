@@ -1,63 +1,75 @@
-NAME
-    File::Binary - Binary file reading module
+README for File::Binary 1.3
 
-SYNOPSIS
-        use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
+=head1 NAME
 
-        my $fb = File::Binary->new("myfile");
+File::Binary - Binary file reading module
+
+=head1 SYNOPSIS
+
+    use File::Binary qw($BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN);
+
+    my $fb = File::Binary->new("myfile");
     
-        $fb->get_ui8();
-        $fb->get_ui16();
-        $fb->get_ui32();
-        $fb->get_si8();
-        $fb->get_si16();
-        $fb->get_si32();
+    $fb->get_ui8();
+    $fb->get_ui16();
+    $fb->get_ui32();
+    $fb->get_si8();
+    $fb->get_si16();
+    $fb->get_si32();
 
-        $fb->close();
+    $fb->close();
 
-        $fb->open(">newfile");
+    $fb->open(">newfile");
 
-        $fb->put_ui8(255);
-        $fb->put_ui16(65535);
-        $fb->put_ui32(4294967295);
-        $fb->put_si8(-127);
-        $fb->put_si16(-32767);
-        $fb->put_si32(-2147483645);
+    $fb->put_ui8(255);
+    $fb->put_ui16(65535);
+    $fb->put_ui32(4294967295);
+    $fb->put_si8(-127);
+    $fb->put_si16(-32767);
+    $fb->put_si32(-2147483645);
     
-        $fb->close();
+    $fb->close();
 
-        $fb->open(IO::Scalar->new($somedata));
-        $fb->set_endian($BIG_ENDIAN); # force endianness
 
-        # do what they say on the tin
-        $fb->seek($pos);
-        $fb->tell();
+    $fb->open(IO::Scalar->new($somedata));
+    $fb->set_endian($BIG_ENDIAN); # force endianness
 
-        # etc etc
+    # do what they say on the tin
+    $fb->seek($pos);
+    $fb->tell();
 
-DEPENDENCIES
-    This module has external dependencies on the following modules:
+    # etc etc
 
-     IO::Scalar
-     Test::More
 
-INSTALLATION
-     perl Makefile.PL
-     make test
 
-    and if all goes well
+=head1 DEPENDENCIES
 
-     make install
+This module has external dependencies on the following modules:
 
-HISTORY
-    Revision history for Perl extension File::Binary.
+ IO::Scalar
+ Test::More
 
-    1.20 Tue Mar 2 16:20:47 GMT 2004 - fixed a braino spotted by Thomas L.
-    Shinnick
+=head1 INSTALLATION
 
-    1.10 Tue Sep 23 15:43:13 2003 - add in seek and tell after suggestion
-    from Britton Kerin
+ perl Makefile.PL
+ make test
 
-AUTHOR
-    Copyright 2003, Simon Wistow <simon@thegestalt.org>
+and if all goes well
+
+ make install
+
+=head1 HISTORY
+
+Revision history for Perl extension File::Binary.
+
+1.30  Tue  1 Aug 2006 16:42:01 BST
+    - fix seek bug thank to patch from Karl Forner
+
+1.20  Tue Mar  2 16:20:47 GMT 2004
+    - fixed a braino spotted by Thomas L. Shinnick
+
+=head1 AUTHOR
+
+Copyright 2003, Simon Wistow <simon@thegestalt.org>
+
 

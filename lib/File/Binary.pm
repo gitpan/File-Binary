@@ -9,7 +9,7 @@ use vars qw(@EXPORT_OK $VERSION $BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN $AUTOL
 use Fcntl qw(:DEFAULT);
 
 # yay! finally 
-$VERSION='1.3';
+$VERSION='1.4';
 
 # for seekable stuff
 $DEBUG = 0;
@@ -116,7 +116,7 @@ sub open {
     my $fh;
     my $writeable = -1;
 
-    if (ref($fh) =~ /^IO::/ && $file->isa('IO::Handle')) {
+    if (ref($file) =~ /^IO::/ && $file->isa('IO::Handle')) {
         $fh = $file;
         $writeable = 2; # read and write mode 
     } else {
