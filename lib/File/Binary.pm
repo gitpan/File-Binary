@@ -9,7 +9,7 @@ use vars qw(@EXPORT_OK $VERSION $BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN $AUTOL
 use Fcntl qw(:DEFAULT);
 
 # yay! finally 
-$VERSION='1.4';
+$VERSION='1.5';
 
 # for seekable stuff
 $DEBUG = 0;
@@ -108,6 +108,9 @@ sub new {
 
 Pass in either a file name or something which isa an IO::Handle.
 
+If you pass in an IO::Handle then it is your responsibility to
+make sure that binmode has been set.
+
 =cut 
 
 sub open {
@@ -126,10 +129,9 @@ sub open {
         } elsif ($file =~ /^\+>/) {
             $writeable=2;
         }
-
+        $fh->binmode();
     }
-
-
+    
 
     $self->{_bitbuf}      = '';
     $self->{_bitpos}      = 0;
