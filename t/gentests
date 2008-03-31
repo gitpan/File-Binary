@@ -1,8 +1,8 @@
-#!/usr/bin/perl -w
+#!perl -w
 
 use strict;
 
-open VALUES, "values.txt" || die "Couldn't open values : $!\n";
+open (VALUES, shift) || die "Couldn't open values : $!\n";
 
 my $test;
 my $current_tests = {};
@@ -68,17 +68,20 @@ sub dump_tests {
 		
 		my $tfile = sprintf "%.2d%s", $$numr++, $filename;
 
-		
-		open TEST, ">$tfile.be.t" || die "Couldn't open $tfile : $!\n";
-		print TEST <<"EOF";
+
+		foreach my $what (qw(be le)) {
+			my $const = ($what eq 'be')? "BIG" : "LITTLE";
+		    open TEST, ">$tfile.$what.t" || die "Couldn't open $tfile.$what.t : $!\n";
+		    print TEST <<"EOF";
 #!perl -w
 
 use strict;
 use Test::More qw(no_plan);
 use File::Binary;
+use IO::Scalar;
 
-my \$bin = File::Binary->new('t/be.$filename');
-\$bin->set_endian(\$File::Binary::BIG_ENDIAN);
+my \$bin = File::Binary->new('t/$what.$filename');
+\$bin->set_endian(\$File::Binary::${const}_ENDIAN);
 
 $read
 
@@ -87,7 +90,7 @@ $read
 
 
 \$bin = File::Binary->new('>t/temp');
-\$bin->set_endian(\$File::Binary::BIG_ENDIAN);
+\$bin->set_endian(\$File::Binary::${const}_ENDIAN);
 
 $write
 
@@ -95,52 +98,24 @@ $write
 
 
 \$bin = File::Binary->new('t/temp');
-\$bin->set_endian(\$File::Binary::BIG_ENDIAN);
+\$bin->set_endian(\$File::Binary::${const}_ENDIAN);
 
 $read
 
 \$bin->close();
+
+open(BINDATA, 't/$what.$filename');
+my \$data = do { local \$/ = undef; <BINDATA> };
+\$bin = File::Binary->new(IO::Scalar->new(\\\$data));
+\$bin->set_endian(\$File::Binary::${const}_ENDIAN);
+
+$read
+
+\$bin->close;
+
 
 EOF
-		close TEST;
-
-               open TEST, ">$tfile.le.t" || die "Couldn't open $tfile : $!\n";
-                print TEST <<"EOF";
-#!perl -w
-
-use strict;
-use Test::More qw(no_plan);
-use File::Binary;
-
-my \$bin = File::Binary->new('t/le.$filename');
-\$bin->set_endian(\$File::Binary::LITTLE_ENDIAN);
-
-$read
-
-\$bin->close();
-
-
-
-\$bin = File::Binary->new('>t/temp');
-\$bin->set_endian(\$File::Binary::LITTLE_ENDIAN);
-
-$write
-
-\$bin->close();
-
-
-\$bin = File::Binary->new('t/temp');
-\$bin->set_endian(\$File::Binary::LITTLE_ENDIAN);
-
-$read
-
-\$bin->close();
-
-EOF
-                close TEST;
-
-		
-
-
-	}
+		    close TEST;
+	    }
+    }
 }

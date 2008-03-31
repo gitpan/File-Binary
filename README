@@ -1,4 +1,4 @@
-README for File::Binary 1.4
+README for File::Binary 1.5
 
 =head1 NAME
 
@@ -61,6 +61,8 @@ and if all goes well
 =head1 HISTORY
 
 Revision history for Perl extension File::Binary.
+1.50  Wed 12 Mar 2008 20:08:06 GMT
+    - fix a bug to do with binmode of file handles thanks to Peter Möller
 
 1.40  Wed 30 Aug 2006 20:09:25 BST
     - fix bug with checking file handle on open thanks to Duane Hitz 
