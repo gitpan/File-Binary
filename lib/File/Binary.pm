@@ -8,8 +8,7 @@ use IO::File;
 use vars qw(@EXPORT_OK $VERSION $BIG_ENDIAN $LITTLE_ENDIAN $NATIVE_ENDIAN $AUTOLOAD $DEBUG);
 use Fcntl qw(:DEFAULT);
 
-# yay! finally 
-$VERSION='1.6';
+$VERSION='1.7';
 
 # for seekable stuff
 $DEBUG = 0;

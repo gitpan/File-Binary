@@ -1,5 +1,4 @@
 t/gentests
-t/.+\.ints$
 t/values.txt
 \.tar\.gz$
 \.tar$

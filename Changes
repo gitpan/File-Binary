@@ -1,4 +1,7 @@
 Revision history for Perl extension File::Binary.
+1.70  Tue  1 Apr 2008 18:11:09 BST
+    - Doh! Ship the test files too!
+
 1.60  Mon 31 Mar 2008 19:06:03 BST
     - Specify minimum version of IO::File
     - Make binmode more automatic
